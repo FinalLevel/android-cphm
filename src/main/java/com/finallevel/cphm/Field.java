@@ -25,12 +25,16 @@ class Field
 	// BYTE
 	private static final int TYPE_BYTE = 10;
 	private static final int TYPE_BYTE_OBJ = 11;
+	// BOOLEAN
+	private static final int TYPE_BOOLEAN = 12;
+	private static final int TYPE_BOOLEAN_OBJ = 13;
 
 	private static final String[] SQLITE_TYPES = {
 		"INTEGER", "INTEGER", "INTEGER", "INTEGER",
 		"REAL", "REAL", "REAL", "REAL",
 		"TEXT",
 		"BLOB",
+		"INTEGER", "INTEGER",
 		"INTEGER", "INTEGER",
 	};
 	private static final boolean[] NOT_NULL = {
@@ -39,12 +43,14 @@ class Field
 		false,
 		false,
 		true, false,
+		true, false,
 	};
 	private static final String[] DEFAULTS = {
 		"0", null, "0", null,
 		"0", null, "0", null,
 		null,
 		null,
+		"0", null,
 		"0", null,
 	};
 
@@ -101,6 +107,10 @@ class Field
 			result._type = TYPE_FLOAT_OBJ;
 		} else if (t == Double.class) {
 			result._type = TYPE_DOUBLE_OBJ;
+		} else if (t == boolean.class) {
+			result._type = TYPE_BOOLEAN;
+		} else if (t == Boolean.class) {
+			result._type = TYPE_BOOLEAN_OBJ;
 		} else {
 			return null;
 		}
@@ -158,6 +168,12 @@ class Field
 			case TYPE_DOUBLE_OBJ:
 				_field.set(model, cursor.isNull(position) ? null : cursor.getDouble(position));
 				break;
+			case TYPE_BOOLEAN:
+				_field.setBoolean(model, cursor.getInt(position) != 0);
+				break;
+			case TYPE_BOOLEAN_OBJ:
+				_field.set(model, cursor.isNull(position) ? null : cursor.getInt(position) != 0);
+				break;
 			default:
 				throw new IllegalArgumentException("Unknown field _type: " + _type);
 		}
@@ -203,6 +219,12 @@ class Field
 			case TYPE_DOUBLE_OBJ:
 				_field.set(model, (double) value);
 				break;
+			case TYPE_BOOLEAN:
+				_field.setBoolean(model, value != 0);
+				break;
+			case TYPE_BOOLEAN_OBJ:
+				_field.set(model, value != 0);
+				break;
 			default:
 				throw new IllegalArgumentException("Unknown field _type: " + _type);
 		}
@@ -228,6 +250,9 @@ class Field
 				return;
 			case TYPE_DOUBLE:
 				contentValues.put(name, _field.getDouble(model));
+				return;
+			case TYPE_BOOLEAN:
+				contentValues.put(name, _field.getBoolean(model));
 				return;
 		}
 
@@ -261,6 +286,9 @@ class Field
 			case TYPE_DOUBLE_OBJ:
 				contentValues.put(name, (Double) val);
 				break;
+			case TYPE_BOOLEAN_OBJ:
+				contentValues.put(name, (Boolean) val);
+				break;
 			default:
 				throw new IllegalArgumentException("Unknown field _type: " + _type);
 		}
@@ -282,6 +310,8 @@ class Field
 				return (long) _field.getFloat(model);
 			case TYPE_DOUBLE:
 				return (long) _field.getDouble(model);
+			case TYPE_BOOLEAN:
+				return (_field.getBoolean(model) ? 1l : 0l);
 		}
 
 		// OBJECTS
@@ -306,6 +336,8 @@ class Field
 				return ((Float) val).longValue();
 			case TYPE_DOUBLE_OBJ:
 				return ((Double) val).longValue();
+			case TYPE_BOOLEAN_OBJ:
+				return (((Boolean) val) ? 1l : 0l);
 			default:
 				throw new IllegalArgumentException("Unknown field _type: " + _type);
 		}
