@@ -8,6 +8,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
+import android.os.Build;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.Pair;
@@ -128,12 +129,17 @@ public abstract class BaseProvider extends ContentProvider
 
 		final SQLiteDatabase db = _openHelper.getWritableDatabase();
 
-		int onConflict = SQLiteDatabase.CONFLICT_NONE;
-		final String queryConflict = uri.getQueryParameter(PARAM_ON_CONFLICT);
-		if (!TextUtils.isEmpty(queryConflict)) {
-			onConflict = Integer.parseInt(queryConflict);
+		final long id;
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.FROYO) {
+			int onConflict = SQLiteDatabase.CONFLICT_NONE;
+			final String queryConflict = uri.getQueryParameter(PARAM_ON_CONFLICT);
+			if (!TextUtils.isEmpty(queryConflict)) {
+				onConflict = Integer.parseInt(queryConflict);
+			}
+			id = db.insertWithOnConflict(type.first[0], null, values, onConflict);
+		} else {
+			id = db.insertOrThrow(type.first[0], null, values);
 		}
-		final long id = db.insertWithOnConflict(type.first[0], null, values, onConflict);
 
 		if (id > 0 && !db.inTransaction()) {
 			getContext().getContentResolver().notifyChange(uri, null);
@@ -188,32 +194,54 @@ public abstract class BaseProvider extends ContentProvider
 
 		final SQLiteDatabase db = _openHelper.getWritableDatabase();
 
-		int onConflict = SQLiteDatabase.CONFLICT_NONE;
-		final String queryConflict = uri.getQueryParameter(PARAM_ON_CONFLICT);
-		if (!TextUtils.isEmpty(queryConflict)) {
-			onConflict = Integer.parseInt(queryConflict);
-		}
 		final int rowsAffected;
-		if (type.second != null) {
-			if (TextUtils.isEmpty(selection)) {
-				rowsAffected = db.updateWithOnConflict(
-					type.first[0],
-					values,
-					BaseColumns.CN_ID + " = " + type.second,
-					null,
-					onConflict
-				);
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.FROYO) {
+			int onConflict = SQLiteDatabase.CONFLICT_NONE;
+			final String queryConflict = uri.getQueryParameter(PARAM_ON_CONFLICT);
+			if (!TextUtils.isEmpty(queryConflict)) {
+				onConflict = Integer.parseInt(queryConflict);
+			}
+			if (type.second != null) {
+				if (TextUtils.isEmpty(selection)) {
+					rowsAffected = db.updateWithOnConflict(
+							type.first[0],
+							values,
+							BaseColumns.CN_ID + " = " + type.second,
+							null,
+							onConflict
+					);
+				} else {
+					rowsAffected = db.updateWithOnConflict(
+							type.first[0],
+							values,
+							"(" + selection + ") AND " + BaseColumns.CN_ID + " = " + type.second,
+							selectionArgs,
+							onConflict
+					);
+				}
 			} else {
-				rowsAffected = db.updateWithOnConflict(
-					type.first[0],
-					values,
-					"(" + selection + ") AND " + BaseColumns.CN_ID + " = " + type.second,
-					selectionArgs,
-					onConflict
-				);
+				rowsAffected = db.updateWithOnConflict(type.first[0], values, selection, selectionArgs, onConflict);
 			}
 		} else {
-			rowsAffected = db.updateWithOnConflict(type.first[0], values, selection, selectionArgs, onConflict);
+			if (type.second != null) {
+				if (TextUtils.isEmpty(selection)) {
+					rowsAffected = db.update(
+							type.first[0],
+							values,
+							BaseColumns.CN_ID + " = " + type.second,
+							null
+					);
+				} else {
+					rowsAffected = db.update(
+							type.first[0],
+							values,
+							"(" + selection + ") AND " + BaseColumns.CN_ID + " = " + type.second,
+							selectionArgs
+					);
+				}
+			} else {
+				rowsAffected = db.update(type.first[0], values, selection, selectionArgs);
+			}
 		}
 
 		if (rowsAffected != 0 && !db.inTransaction()) {
@@ -241,7 +269,7 @@ public abstract class BaseProvider extends ContentProvider
 
 		if (segments.size() > 1) {
 			final String id = segments.get(1);
-			if (!id.isEmpty()) {
+			if (id.length() > 0) {
 				return Pair.create(tables, Long.parseLong(id));
 			}
 		}
