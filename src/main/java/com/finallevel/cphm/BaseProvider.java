@@ -8,7 +8,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
-import android.os.Build;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.Pair;
@@ -129,17 +128,17 @@ public abstract class BaseProvider extends ContentProvider
 
 		final SQLiteDatabase db = _openHelper.getWritableDatabase();
 
-		final long id;
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.FROYO) {
+//		final long id;
+//		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.FROYO) {
 			int onConflict = SQLiteDatabase.CONFLICT_NONE;
 			final String queryConflict = uri.getQueryParameter(PARAM_ON_CONFLICT);
 			if (!TextUtils.isEmpty(queryConflict)) {
 				onConflict = Integer.parseInt(queryConflict);
 			}
-			id = db.insertWithOnConflict(type.first[0], null, values, onConflict);
-		} else {
-			id = db.insertOrThrow(type.first[0], null, values);
-		}
+			final long id = db.insertWithOnConflict(type.first[0], null, values, onConflict);
+//		} else {
+//			id = db.insertOrThrow(type.first[0], null, values);
+//		}
 
 		if (id > 0 && !db.inTransaction()) {
 			getContext().getContentResolver().notifyChange(uri, null);
@@ -195,7 +194,7 @@ public abstract class BaseProvider extends ContentProvider
 		final SQLiteDatabase db = _openHelper.getWritableDatabase();
 
 		final int rowsAffected;
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.FROYO) {
+//		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.FROYO) {
 			int onConflict = SQLiteDatabase.CONFLICT_NONE;
 			final String queryConflict = uri.getQueryParameter(PARAM_ON_CONFLICT);
 			if (!TextUtils.isEmpty(queryConflict)) {
@@ -222,27 +221,27 @@ public abstract class BaseProvider extends ContentProvider
 			} else {
 				rowsAffected = db.updateWithOnConflict(type.first[0], values, selection, selectionArgs, onConflict);
 			}
-		} else {
-			if (type.second != null) {
-				if (TextUtils.isEmpty(selection)) {
-					rowsAffected = db.update(
-							type.first[0],
-							values,
-							BaseColumns.CN_ID + " = " + type.second,
-							null
-					);
-				} else {
-					rowsAffected = db.update(
-							type.first[0],
-							values,
-							"(" + selection + ") AND " + BaseColumns.CN_ID + " = " + type.second,
-							selectionArgs
-					);
-				}
-			} else {
-				rowsAffected = db.update(type.first[0], values, selection, selectionArgs);
-			}
-		}
+//		} else {
+//			if (type.second != null) {
+//				if (TextUtils.isEmpty(selection)) {
+//					rowsAffected = db.update(
+//							type.first[0],
+//							values,
+//							BaseColumns.CN_ID + " = " + type.second,
+//							null
+//					);
+//				} else {
+//					rowsAffected = db.update(
+//							type.first[0],
+//							values,
+//							"(" + selection + ") AND " + BaseColumns.CN_ID + " = " + type.second,
+//							selectionArgs
+//					);
+//				}
+//			} else {
+//				rowsAffected = db.update(type.first[0], values, selection, selectionArgs);
+//			}
+//		}
 
 		if (rowsAffected != 0 && !db.inTransaction()) {
 			getContext().getContentResolver().notifyChange(uri, null);
