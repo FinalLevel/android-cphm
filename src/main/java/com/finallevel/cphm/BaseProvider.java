@@ -18,6 +18,7 @@ public abstract class BaseProvider extends ContentProvider
 {
 	public static final String PARAM_ON_CONFLICT = "_ON_CONFLICT";
 	public static final String PARAM_JOIN_ON = "_JOIN_ON";
+	public static final String PARAM_LIMIT = "_LIMIT";
 
 	private static final String LOG_TAG = "BaseProvider";
 
@@ -47,6 +48,7 @@ public abstract class BaseProvider extends ContentProvider
 		if (type == null) {
 			throw new IllegalArgumentException("Unknown uri " + uri);
 		}
+		final String limitParameter = uri.getQueryParameter(PARAM_LIMIT);
 
 		final SQLiteDatabase db = _openHelper.getReadableDatabase();
 
@@ -91,9 +93,9 @@ public abstract class BaseProvider extends ContentProvider
 			final SQLiteQueryBuilder queryBuilder = new SQLiteQueryBuilder();
 			queryBuilder.setTables(stringBuilder.toString());
 
-			cursor = queryBuilder.query(db, projection, selection, selectionArgs, null, null, sortOrder);
+			cursor = queryBuilder.query(db, projection, selection, selectionArgs, null, null, sortOrder, limitParameter);
 		} else {
-			cursor = db.query(type.first[0], projection, selection, selectionArgs, null, null, sortOrder);
+			cursor = db.query(type.first[0], projection, selection, selectionArgs, null, null, sortOrder, limitParameter);
 		}
 
 		cursor.setNotificationUri(getContext().getContentResolver(), uri); // NOTE: check if join
