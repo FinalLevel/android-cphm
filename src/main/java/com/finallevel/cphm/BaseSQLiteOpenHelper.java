@@ -211,6 +211,7 @@ public abstract class BaseSQLiteOpenHelper extends SQLiteOpenHelper
 		db.execSQL(sql);
 	}
 
+	@SuppressWarnings("UnusedReturnValue")
 	protected boolean _recreateTable(SQLiteDatabase db, String tableName)
 	{
 		final Map<String, BaseStructure.TableHolder> tableHolders = _structure.getTableHolders();

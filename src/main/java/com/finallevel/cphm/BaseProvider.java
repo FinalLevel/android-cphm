@@ -1,8 +1,6 @@
 package com.finallevel.cphm;
 
-import android.content.ContentProvider;
-import android.content.ContentUris;
-import android.content.ContentValues;
+import android.content.*;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
@@ -40,7 +38,7 @@ public abstract class BaseProvider extends ContentProvider
 	}
 
 	@Override
-	public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder)
+	public Cursor query(@SuppressWarnings("NullableProblems") Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder)
 	{
 		Log.d(LOG_TAG, "QUERY: " + uri.toString());
 
@@ -98,13 +96,16 @@ public abstract class BaseProvider extends ContentProvider
 			cursor = db.query(type.first[0], projection, selection, selectionArgs, null, null, sortOrder, limitParameter);
 		}
 
-		cursor.setNotificationUri(getContext().getContentResolver(), uri); // NOTE: check if join
+		final Context context = getContext();
+		if (context != null) {
+			cursor.setNotificationUri(context.getContentResolver(), uri); // NOTE: check if join
+		}
 
 		return cursor;
 	}
 
 	@Override
-	public String getType(Uri uri)
+	public String getType(@SuppressWarnings("NullableProblems") Uri uri)
 	{
 		final Pair<String[], Long> type = _getType(uri);
 		if (type == null) {
@@ -119,7 +120,7 @@ public abstract class BaseProvider extends ContentProvider
 	}
 
 	@Override
-	public Uri insert(Uri uri, ContentValues values)
+	public Uri insert(@SuppressWarnings("NullableProblems") Uri uri, ContentValues values)
 	{
 		Log.d(LOG_TAG, "INSERT: " + uri.toString());
 
@@ -142,15 +143,16 @@ public abstract class BaseProvider extends ContentProvider
 //			id = db.insertOrThrow(type.first[0], null, values);
 //		}
 
-		if (id > 0 && !db.inTransaction()) {
-			getContext().getContentResolver().notifyChange(uri, null);
+		final Context context = getContext();
+		if (id > 0 && !db.inTransaction() && context != null) {
+			context.getContentResolver().notifyChange(uri, null);
 		}
 
 		return ContentUris.withAppendedId(uri, id);
 	}
 
 	@Override
-	public int delete(Uri uri, String selection, String[] selectionArgs)
+	public int delete(@SuppressWarnings("NullableProblems") Uri uri, String selection, String[] selectionArgs)
 	{
 		Log.d(LOG_TAG, "DELETE: " + uri.toString());
 
@@ -176,15 +178,16 @@ public abstract class BaseProvider extends ContentProvider
 			rowsAffected = db.delete(type.first[0], selection, selectionArgs);
 		}
 
-		if ((selection == null || rowsAffected != 0) && !db.inTransaction()) {
-			getContext().getContentResolver().notifyChange(uri, null);
+		final Context context = getContext();
+		if ((selection == null || rowsAffected != 0) && !db.inTransaction() && context != null) {
+			context.getContentResolver().notifyChange(uri, null);
 		}
 
 		return rowsAffected;
 	}
 
 	@Override
-	public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs)
+	public int update(@SuppressWarnings("NullableProblems") Uri uri, ContentValues values, String selection, String[] selectionArgs)
 	{
 		Log.d(LOG_TAG, "UPDATE: " + uri.toString());
 
@@ -245,8 +248,9 @@ public abstract class BaseProvider extends ContentProvider
 //			}
 //		}
 
-		if (rowsAffected != 0 && !db.inTransaction()) {
-			getContext().getContentResolver().notifyChange(uri, null);
+		final Context context = getContext();
+		if (rowsAffected != 0 && !db.inTransaction() && context != null) {
+			context.getContentResolver().notifyChange(uri, null);
 		}
 
 		return rowsAffected;

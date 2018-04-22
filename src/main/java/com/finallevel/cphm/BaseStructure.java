@@ -84,6 +84,7 @@ public class BaseStructure
 			throw new IllegalArgumentException("Unknown model " + cls);
 		}
 
+		//noinspection TryWithIdenticalCatches
 		try {
 			final T result = cls.newInstance();
 
@@ -143,6 +144,7 @@ public class BaseStructure
 		}
 
 		final T result;
+		//noinspection TryWithIdenticalCatches
 		try {
 			if (!cursor.moveToFirst()) {
 				return null;
@@ -222,6 +224,7 @@ public class BaseStructure
 		);
 	}
 
+	@SuppressWarnings("UnusedReturnValue")
 	public boolean insertOrUpdate(ContentResolver contentResolver, Uri contentUri, ContentValues cv)
 	{
 		return insertOrUpdate(contentResolver, contentUri, cv, null);
@@ -270,7 +273,7 @@ public class BaseStructure
 		CHECK("CHECK"),
 		FOREIGN_KEY("FOREIGN_KEY");
 
-		Constraint(String value)
+		Constraint(@SuppressWarnings("unused") String value)
 		{
 		}
 	}
@@ -283,7 +286,7 @@ public class BaseStructure
 		IGNORE("IGNORE"),
 		REPLACE("REPLACE");
 
-		OnConflict(String value)
+		OnConflict(@SuppressWarnings("unused") String value)
 		{
 		}
 	}

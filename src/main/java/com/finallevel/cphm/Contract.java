@@ -39,6 +39,7 @@ class Contract
 			throw new IllegalArgumentException("Column \"_id\" not exists");
 		}
 
+		//noinspection ToArrayCallWithZeroLengthArrayArgument
 		_fields = list.toArray(new Field[list.size()]);
 
 		_projection = new String[_fields.length + 1];

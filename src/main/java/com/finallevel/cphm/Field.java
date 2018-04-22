@@ -311,7 +311,7 @@ class Field
 			case TYPE_DOUBLE:
 				return (long) _field.getDouble(model);
 			case TYPE_BOOLEAN:
-				return (_field.getBoolean(model) ? 1l : 0l);
+				return (_field.getBoolean(model) ? 1L : 0L);
 		}
 
 		// OBJECTS
@@ -337,7 +337,7 @@ class Field
 			case TYPE_DOUBLE_OBJ:
 				return ((Double) val).longValue();
 			case TYPE_BOOLEAN_OBJ:
-				return (((Boolean) val) ? 1l : 0l);
+				return (((Boolean) val) ? 1L : 0L);
 			default:
 				throw new IllegalArgumentException("Unknown field _type: " + _type);
 		}
