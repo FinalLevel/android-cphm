@@ -5,5 +5,5 @@ public class BaseColumns
 	public static final String CN_ID = "_id";
 	public static final int CI_ID = 0;
 
-	public long _id;
+//	public long _id;
 }
