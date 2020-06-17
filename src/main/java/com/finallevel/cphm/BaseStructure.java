@@ -11,11 +11,7 @@ import android.net.Uri;
 import android.text.TextUtils;
 import android.util.Log;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class BaseStructure
 {
@@ -225,18 +221,17 @@ public class BaseStructure
 	}
 
 	@SuppressWarnings("UnusedReturnValue")
-	public boolean insertOrUpdate(ContentResolver contentResolver, Uri contentUri, ContentValues cv)
-	{
-		return insertOrUpdate(contentResolver, contentUri, cv, null);
+	public boolean insertOrUpdate(ContentResolver contentResolver, Uri contentUri, ContentValues cv) {
+		return insertOrUpdate(contentResolver, contentUri, cv, null, null);
 	}
 
 	public boolean insertOrUpdate(
 		ContentResolver contentResolver,
 		Uri contentUri,
 		ContentValues cv,
-		String[] excludeFromUpdate
-	)
-	{
+		String[] excludeFromUpdate,
+		String[] updateOnly
+	) {
 		try {
 			final Uri uri = contentResolver.insert(contentUri, cv);
 			final long id = ContentUris.parseId(uri);
@@ -246,13 +241,39 @@ public class BaseStructure
 		} catch (SQLException ignored) {
 		}
 
+		final Long id = cv.getAsLong(BaseColumns.CN_ID);
+		if (id == null || id <= 0) {
+			return false;
+		}
+
 		if (excludeFromUpdate != null) {
 			for (String field : excludeFromUpdate) {
 				cv.remove(field);
 			}
 		}
 
-		contentResolver.update(contentUri, cv, null, null);
+		if (updateOnly != null) {
+			final ArrayList<String> keysToRemove = new ArrayList<>(cv.size());
+			Arrays.sort(updateOnly);
+			for (final Map.Entry<String, Object> entry : cv.valueSet()) {
+				final String field = entry.getKey();
+				final int i = Arrays.binarySearch(updateOnly, field);
+				if (i < 0) {
+					keysToRemove.add(field);
+				}
+			}
+
+			for (final String field : keysToRemove) {
+				cv.remove(field);
+			}
+		}
+
+		contentResolver.update(
+				contentUri,
+				cv,
+				BaseColumns.CN_ID + " = " + id,
+				null
+		);
 
 		return true;
 	}
